@@ -24,7 +24,7 @@ const App = React.memo(() => {
     if (symbol === '' || positions[symbol]) return
     try {
       setLoading(true)
-      const stock = await fn.getStock(symbol)
+      await fn.getStock(symbol)
       const length = Object.keys(positions).length + 1
       const index = length - 1
       const position = fn.updatePosition({symbol, length, index})

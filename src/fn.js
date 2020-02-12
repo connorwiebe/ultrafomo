@@ -14,7 +14,7 @@ const getStock = async symbol => {
 
   // otherwise make network request for stock
   let response = await fetch(`https://0zqs2xabdg.execute-api.ca-central-1.amazonaws.com/fuck?symbol=${symbol}`)
-  if (!response.ok) throw {err: `Couldn't find stock ${symbol}.`}
+  if (!response.ok) throw Error(`Couldn't find stock ${symbol}.`)
   response = await response.json()
   stock = {
     data: response.data,
@@ -67,17 +67,13 @@ const getStats = ({symbol, length, index}) => {
   if (remainingDays) timespan += `, ${remainingDays} Day${remainingDays === 1 ? '' : 's'}`
 
   // get profit & roi
-  console.log(`symbol ->`, symbol)
   const totalAlloc = Object.keys(storePositions).reduce((sum, key) => sum + (storePositions[key].stats.percentage || 0), 0)
-  console.log(`totalAlloc ->`, totalAlloc)
   const percentage = storePositions[symbol].stats.percentage || (1 - totalAlloc)
-  console.log(`percentage ->`, percentage)
   const alloc = capitalOption * percentage
-  console.log(`alloc ->`, alloc)
   const shares = Math.floor(alloc / startPrice)
   const startMktValue = shares * startPrice
   const endMktValue = shares * endPrice
-  const dividendCount = range.reduce((sum, cur) => sum + (cur.dividend ? 1 : 0), 0)
+  // const dividendCount = range.reduce((sum, cur) => sum + (cur.dividend ? 1 : 0), 0)
   const dividends = range.reduce((sum,cur) => sum + cur.dividend, 0) * shares
   const profit = (endPrice - startPrice) * shares
   const roi = (profit / alloc) || 0

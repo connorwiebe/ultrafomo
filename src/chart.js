@@ -1,6 +1,5 @@
 import React from 'react'
 import {Chart, Line} from 'react-chartjs-2'
-import fn from './fn'
 import numeral from 'numeral'
 
 export default React.memo(({positions}) => {
@@ -69,7 +68,6 @@ export default React.memo(({positions}) => {
               intersect: false,
               position: 'custom',
               caretSize: 0,
-              cornerRadius: 0,
               borderColor: 'rgba(0,0,0,0)',
               backgroundColor: '#020202',
               bodyFontColor: '#fff',
