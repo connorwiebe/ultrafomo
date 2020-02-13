@@ -23,7 +23,7 @@ const getStock = async symbol => {
   store.set('positions', {...positions, [symbol]: {stock, stats:{}}})
   return stock
 }
-const getStats = ({symbol, length, index}) => {
+const getStats = ({symbol, length, index, newPercentage}) => {
   const timeOption = store.get('time')
   const capitalOption = store.get('capital')
   const storePositions = JSON.parse(store.get('positions'))
@@ -48,7 +48,6 @@ const getStats = ({symbol, length, index}) => {
   if (timeOption > 20 || startIndex === 0) startIndex = stock.data.length
 
   let range = stock.data.slice(0, startIndex + 1).reverse()
-  console.log(`${symbol}: ${range[0].date} ${range[range.length-1].date}, range length: ${range.length}, startIndex: ${startIndex}`)
   const startPrice = range[0].price
   const endPrice = range[range.length - 1].price
 
@@ -67,8 +66,8 @@ const getStats = ({symbol, length, index}) => {
   if (remainingDays) timespan += `, ${remainingDays} Day${remainingDays === 1 ? '' : 's'}`
 
   // get profit & roi
-  const totalAlloc = Object.keys(storePositions).reduce((sum, key) => sum + (storePositions[key].stats.percentage || 0), 0)
-  const percentage = storePositions[symbol].stats.percentage || (1 - totalAlloc)
+  const sumAlloc = Object.keys(storePositions).reduce((sum, key) => sum += storePositions[key].stats.percentage || 0, 0)
+  const percentage = newPercentage || storePositions[symbol].stats.percentage || (1 - sumAlloc)
   const alloc = capitalOption * percentage
   const shares = Math.floor(alloc / startPrice)
   const startMktValue = shares * startPrice
@@ -131,8 +130,8 @@ const getDataset = ({symbol, coords, stats}) => {
     data: coords
   }
 }
-const updatePosition = ({symbol, length, index}) => {
-  const stats = getStats({symbol, length, index})
+const updatePosition = ({symbol, length, index, newPercentage}) => {
+  const stats = getStats({symbol, length, index, newPercentage})
   const coords = getCoords(stats.range)
   const dataset = getDataset({symbol, coords, stats})
   const positions = JSON.parse(store.get('positions'))

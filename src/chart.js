@@ -27,7 +27,7 @@ export default React.memo(({positions}) => {
               duration: 0
             },
             layout: {
-              padding: -20,
+              padding: 0, // -50
               margin: 0
             },
             legend: {
@@ -39,7 +39,7 @@ export default React.memo(({positions}) => {
                   display: false
                 },
                 ticks: {
-                  display: false,
+                  display: true,
                   fontColor: '#020202'
                 },
                 type: 'time',
@@ -53,7 +53,7 @@ export default React.memo(({positions}) => {
                   display: false
                 },
                 ticks: {
-                  display: false,
+                  display: true,
                   stepSize: 25,
                   fontColor: '#020202',
                   maxTicksLimit: 15,
