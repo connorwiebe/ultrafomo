@@ -11,15 +11,10 @@ import numeral from 'numeral'
 import './index.css'
 
 const App = React.memo(() => {
-  console.log('App')
 
   const [loading, setLoading] = React.useState(false)
   const [notification, setNotification] = React.useState({msg:''})
   const [positions, setPositions] = React.useState(JSON.parse(store.get('positions')))
-
-  React.useEffect(() => {
-    console.log(`positions ->`, positions)
-  }, [positions])
 
   const addStock = async e => {
     e.preventDefault()
