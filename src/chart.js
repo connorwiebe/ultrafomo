@@ -1,28 +1,16 @@
 import React from 'react'
 import {Chart, Line} from 'react-chartjs-2'
 import numeral from 'numeral'
-import palettes from 'nice-color-palettes'
-import interpolate from 'color-interpolate'
 
 export default React.memo(({positions}) => {
 
   // const { min, max } = fn.minmax(positions)
   Chart.Tooltip.positioners.custom = (els, pos) => {
     const y = els[0]._model.y
-    if (y < 100) return {x: pos.x, y: y + 80}
-    return {x: pos.x, y: y - 80}
+    if (y < 100) return {x: pos.x, y: y + 150}
+    return {x: pos.x, y: y - 150}
   }
-
-
-  // get unique color
-  const palette = interpolate(palettes[32])
-  const length = Object.keys(positions).length
-  const datasets = Object.keys(positions).map((item, index) => {
-    const gradient = Array.from({ length }, (v, i) => palette(i / length))
-    positions[item].dataset.borderColor = gradient[index]
-    positions[item].dataset.pointBackgroundColor = gradient[index]
-    return positions[item].dataset
-  })
+  const datasets = Object.keys(positions).map(item => positions[item].dataset)
 
   return (
     <div className="chart-container">

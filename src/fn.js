@@ -2,6 +2,8 @@ import moment from 'moment'
 import store from './store'
 import wA from 'weighted-average'
 import numeral from 'numeral'
+import palettes from 'nice-color-palettes'
+import interpolate from 'color-interpolate'
 
 const getStock = async symbol => {
 
@@ -77,6 +79,12 @@ const getStats = ({symbol, percentage}) => {
   const roi = (profit / alloc) || 0
   const annualized = (((1 + (roi / 100)) ** (365 / days)) - 1) * 100
 
+  const palette = interpolate(palettes[32])
+  const gradient = Array.from({ length: 5 }, (v, i) => palette(i / 5))
+  const usedColors = Object.keys(storePositions).map(symbol => storePositions[symbol].stats.color)
+  const availableColors = gradient.filter(color => !usedColors.includes(color))
+  const color = storePositions[symbol].stats.color || availableColors.shift()
+
   return {
     symbol,
     shares,
@@ -89,6 +97,7 @@ const getStats = ({symbol, percentage}) => {
     endMktValue,
     annualized,
     range,
+    color,
     formatted: {
       profit: numeral(profit).format('$0,0.00'),
       roi: numeral(roi).format('0,.00%'),
@@ -107,8 +116,10 @@ const getCoords = data => {
   })
   return coords
 }
-const getDataset = ({symbol, coords}) => {
+const getDataset = ({symbol, coords, stats}) => {
   return {
+    borderColor: stats.color,
+    pointBackgroundColor: stats.color,
     pointHoverBorderColor: '#fff',
     pointHoverBorderWidth: 2,
     lineTension: 0.1,
