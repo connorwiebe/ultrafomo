@@ -23,13 +23,12 @@ const getStock = async symbol => {
   store.set('positions', {...positions, [symbol]: {stock, stats:{}}})
   return stock
 }
-const getStats = ({symbol, percentage}) => {
+const getStats = ({symbol, percentage, length}) => {
   const timeOption = store.get('time')
   const capitalOption = store.get('capital')
   const storePositions = JSON.parse(store.get('positions'))
   const stock = storePositions[symbol].stock
 
-  // find closest start day
   let time = moment().subtract(timeOption, 'years').format('YYYY-MM-DD')
   let startIndex = 0
   loop1: for (let j=0;j<10;j++) {
@@ -44,7 +43,6 @@ const getStats = ({symbol, percentage}) => {
     time = moment(time).add(1, 'days').format('YYYY-MM-DD')
   }
 
-  // get range
   if (timeOption > 20 || startIndex === 0) startIndex = stock.data.length
 
   let range = stock.data.slice(0, startIndex + 1).reverse()
@@ -65,7 +63,6 @@ const getStats = ({symbol, percentage}) => {
   let timespan = `${Math.floor(years)} Year${Math.floor(years) === 1 ? '' : 's'}`
   if (remainingDays) timespan += `, ${remainingDays} Day${remainingDays === 1 ? '' : 's'}`
 
-  // get profit & roi
   const sum = Object.keys(storePositions).reduce((sum, key) => sum += storePositions[key].stats.percentage || 0, 0)
   const remainder = Math.round(((1-sum) < 0 ? 0 : (1-sum)) * 100) / 100
   percentage = percentage !== undefined ? percentage : storePositions[symbol].stats.percentage || remainder
@@ -80,7 +77,7 @@ const getStats = ({symbol, percentage}) => {
   const annualized = (((1 + (roi / 100)) ** (365 / days)) - 1) * 100
 
   const getGradient = interpolate(palettes[32])
-  const length = Object.keys(storePositions).length + 1
+  length = length !== undefined ? length : Object.keys(storePositions).length
   const gradient = Array.from({ length }, (v, i) => getGradient(i / length))
   const usedColors = Object.keys(storePositions).map(symbol => storePositions[symbol].stats.color)
   const availableColors = gradient.filter(color => !usedColors.includes(color))
@@ -133,8 +130,8 @@ const getDataset = ({symbol, coords, stats}) => {
     data: coords
   }
 }
-const updatePosition = ({symbol, percentage}) => {
-  const stats = getStats({symbol, percentage})
+const updatePosition = ({symbol, percentage, length}) => {
+  const stats = getStats({symbol, percentage, length})
   const coords = getCoords(stats.range)
   const dataset = getDataset({symbol, coords, stats})
   const storePositions = JSON.parse(store.get('positions'))
