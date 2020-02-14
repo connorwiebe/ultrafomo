@@ -2,8 +2,6 @@ import moment from 'moment'
 import store from './store'
 import wA from 'weighted-average'
 import numeral from 'numeral'
-import palettes from 'nice-color-palettes'
-import interpolate from 'color-interpolate'
 
 const getStock = async symbol => {
 
@@ -23,7 +21,7 @@ const getStock = async symbol => {
   store.set('positions', {...positions, [symbol]: {stock, stats:{}}})
   return stock
 }
-const getStats = ({symbol, length, index, newPercentage}) => {
+const getStats = ({symbol, percentage}) => {
   const timeOption = store.get('time')
   const capitalOption = store.get('capital')
   const storePositions = JSON.parse(store.get('positions'))
@@ -66,22 +64,18 @@ const getStats = ({symbol, length, index, newPercentage}) => {
   if (remainingDays) timespan += `, ${remainingDays} Day${remainingDays === 1 ? '' : 's'}`
 
   // get profit & roi
-  const sumAlloc = Object.keys(storePositions).reduce((sum, key) => sum += storePositions[key].stats.percentage || 0, 0)
-  const percentage = newPercentage || storePositions[symbol].stats.percentage || (1 - sumAlloc)
+  const sum = Object.keys(storePositions).reduce((sum, key) => sum += storePositions[key].stats.percentage || 0, 0)
+  const remainder = Math.round(((1-sum) < 0 ? 0 : (1-sum)) * 100) / 100
+  percentage = percentage !== undefined ? percentage : storePositions[symbol].stats.percentage || remainder
+
   const alloc = capitalOption * percentage
   const shares = Math.floor(alloc / startPrice)
   const startMktValue = shares * startPrice
   const endMktValue = shares * endPrice
-  // const dividendCount = range.reduce((sum, cur) => sum + (cur.dividend ? 1 : 0), 0)
   const dividends = range.reduce((sum,cur) => sum + cur.dividend, 0) * shares
   const profit = (endPrice - startPrice) * shares
   const roi = (profit / alloc) || 0
   const annualized = (((1 + (roi / 100)) ** (365 / days)) - 1) * 100
-
-  // get unique color
-  const palette = interpolate(palettes[32])
-  const gradient = Array.from({ length }, (v, i) => palette(i / length))
-  const color = gradient[index]
 
   return {
     symbol,
@@ -95,7 +89,6 @@ const getStats = ({symbol, length, index, newPercentage}) => {
     endMktValue,
     annualized,
     range,
-    color,
     formatted: {
       profit: numeral(profit).format('$0,0.00'),
       roi: numeral(roi).format('0,.00%'),
@@ -114,10 +107,8 @@ const getCoords = data => {
   })
   return coords
 }
-const getDataset = ({symbol, coords, stats}) => {
+const getDataset = ({symbol, coords}) => {
   return {
-    borderColor: stats.color,
-    pointBackgroundColor: stats.color,
     pointHoverBorderColor: '#fff',
     pointHoverBorderWidth: 2,
     lineTension: 0.1,
@@ -130,14 +121,14 @@ const getDataset = ({symbol, coords, stats}) => {
     data: coords
   }
 }
-const updatePosition = ({symbol, length, index, newPercentage}) => {
-  const stats = getStats({symbol, length, index, newPercentage})
+const updatePosition = ({symbol, percentage}) => {
+  const stats = getStats({symbol, percentage})
   const coords = getCoords(stats.range)
   const dataset = getDataset({symbol, coords, stats})
-  const positions = JSON.parse(store.get('positions'))
-  const {stock} = positions[symbol]
+  const storePositions = JSON.parse(store.get('positions'))
+  const {stock} = storePositions[symbol]
   const position = {stock, stats, coords, dataset}
-  store.set('positions', {...positions, [symbol]: position})
+  store.set('positions', {...storePositions, [symbol]: position})
   return position
 }
 const defer = (timer => {

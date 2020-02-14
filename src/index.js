@@ -17,6 +17,10 @@ const App = React.memo(() => {
   const [notification, setNotification] = React.useState({msg:''})
   const [positions, setPositions] = React.useState(JSON.parse(store.get('positions')))
 
+  React.useEffect(() => {
+    console.log(`positions ->`, positions)
+  }, [positions])
+
   const addStock = async e => {
     e.preventDefault()
     e.persist()
@@ -25,9 +29,7 @@ const App = React.memo(() => {
     try {
       setLoading(true)
       await fn.getStock(symbol)
-      const length = Object.keys(positions).length + 1
-      const index = length - 1
-      const position = fn.updatePosition({symbol, length, index})
+      const position = fn.updatePosition({symbol})
       setPositions(positions => ({...positions, [symbol]: position}))
     } catch (err) {
       setNotification({msg: 'Stock not found', type: 'error'})
@@ -50,7 +52,7 @@ const App = React.memo(() => {
       store.set(key, value)
       const newPositions = {}
       Object.keys(positions).forEach((symbol, index) => {
-        newPositions[symbol] = fn.updatePosition({symbol, length: Object.keys(positions).length, index})
+        newPositions[symbol] = fn.updatePosition({symbol})
       })
       setPositions(newPositions)
     }, 1000)

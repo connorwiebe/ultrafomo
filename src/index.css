@@ -36,21 +36,18 @@ h1,h2,h3,h4,h5,h6 {
   margin: 0;
 }
 
-#percentage {
-  /* -webkit-appearance: none; */
+[name="percentage"] {
   background: none;
   border: none;
 }
 
 select, option {
   font-family: var(--font);
-  /* font-weight: 500; */
   font-size: 13px;
   outline: 0;
-  /* font-size: 1rem; */
 }
 
-#percentage option {
+[name="percentage"] option {
   font-family: var(--font);
 }
 
@@ -375,7 +372,7 @@ button:hover {
 }
 
 .notifications {
-  position: absolute;
+  position: fixed;
   right: 40px;
   bottom: 40px;
   width: 100%;
@@ -418,9 +415,6 @@ button:hover {
 }
 
 @media screen and (max-width: 600px) {
-  .info-panel, .search-panel {
-    /* padding: 10px; */
-  }
   .stats, select, option {
     font-size: 2.2vw;
   }
