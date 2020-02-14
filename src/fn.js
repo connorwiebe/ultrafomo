@@ -81,9 +81,7 @@ const getStats = ({symbol, percentage}) => {
 
   const getGradient = interpolate(palettes[32])
   const length = Object.keys(storePositions).length + 1
-  console.log(`length ->`, length)
   const gradient = Array.from({ length }, (v, i) => getGradient(i / length))
-  console.log(`gradient ->`, gradient)
   const usedColors = Object.keys(storePositions).map(symbol => storePositions[symbol].stats.color)
   const availableColors = gradient.filter(color => !usedColors.includes(color))
   const color = storePositions[symbol].stats.color || availableColors.shift()
