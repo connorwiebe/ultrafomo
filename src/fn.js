@@ -79,8 +79,11 @@ const getStats = ({symbol, percentage}) => {
   const roi = (profit / alloc) || 0
   const annualized = (((1 + (roi / 100)) ** (365 / days)) - 1) * 100
 
-  const palette = interpolate(palettes[32])
-  const gradient = Array.from({ length: 5 }, (v, i) => palette(i / 5))
+  const getGradient = interpolate(palettes[32])
+  const length = Object.keys(storePositions).length + 1
+  console.log(`length ->`, length)
+  const gradient = Array.from({ length }, (v, i) => getGradient(i / length))
+  console.log(`gradient ->`, gradient)
   const usedColors = Object.keys(storePositions).map(symbol => storePositions[symbol].stats.color)
   const availableColors = gradient.filter(color => !usedColors.includes(color))
   const color = storePositions[symbol].stats.color || availableColors.shift()

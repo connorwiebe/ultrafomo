@@ -21,9 +21,9 @@ const App = React.memo(() => {
     e.persist()
     const symbol = e.target.stock.value.toUpperCase()
     if (symbol === '' || positions[symbol]) return
-    if (Object.keys(positions).length >= 5) {
-      return setNotification({msg: 'Maximum 5 stocks', type: 'error'})
-    }
+    // if (Object.keys(positions).length >= 5) {
+    //   return setNotification({msg: 'Maximum 5 stocks', type: 'error'})
+    // }
     try {
       setLoading(true)
       await fn.getStock(symbol)

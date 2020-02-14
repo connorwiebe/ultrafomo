@@ -7,8 +7,9 @@ export default React.memo(({positions}) => {
   // const { min, max } = fn.minmax(positions)
   Chart.Tooltip.positioners.custom = (els, pos) => {
     const y = els[0]._model.y
-    if (y < 100) return {x: pos.x, y: y + 150}
-    return {x: pos.x, y: y - 150}
+    const x = els[0]._model.x
+    if (y < 100) return {x: x - 50, y: y + 100}
+    return {x: x - 50, y: y - 100}
   }
   const datasets = Object.keys(positions).map(item => positions[item].dataset)
 
