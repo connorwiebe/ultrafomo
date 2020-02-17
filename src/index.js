@@ -8,48 +8,98 @@ import Notifications from './notifications'
 import Position from './position'
 import Menu from './menu'
 import numeral from 'numeral'
+import Promise from 'bluebird'
+import qs from 'query-string'
 import './index.css'
 
 const App = React.memo(() => {
 
-  const [loading, setLoading] = React.useState(false)
-  const [notification, setNotification] = React.useState({msg:''})
-  const [positions, setPositions] = React.useState(JSON.parse(store.get('positions')))
+  const [loading, setLoading] = React.useState({addStock: false, chart: false})
+  const [notification, setNotification] = React.useState({msg: ''})
+  const [positions, setPositions] = React.useState({})
+
+  React.useEffect(() => {
+    const storePositions = store.getItem({key: 'positions'})
+
+    const qsParsed = qs.parse(window.location.search).s || ''
+    const qsArray = qsParsed ? qsParsed.split(',') : []
+
+    const qsStocks = qsArray.filter(item => isNaN(item))
+    const qsPercentages = qsArray.filter(item => !isNaN(item))
+
+    const qsSymbols = qsStocks.reduce((sum, cur, i) => {
+      sum[cur] = {percentage: +qsPercentages[i] / 100 || 0}
+      return sum
+    },{})
+
+    const pendingPositions = {...storePositions, ...qsSymbols}
+    if (!Object.keys(pendingPositions).length) return
+
+    const requests = Object.keys(pendingPositions).reduce((sum, symbol) => {
+      sum.push(Promise.resolve(fn.getStock({symbol, positions: pendingPositions})))
+      return sum
+    },[])
+
+    ;(async () => {
+      setLoading(loading => ({...loading, chart: true}))
+
+      const fulfilledPositions = {}
+      await Promise.all(requests.map(request => request.reflect())).each(inspector => {
+        if (inspector.isFulfilled()) {
+          const stock = inspector.value()
+          fulfilledPositions[stock.symbol] = {
+            stock,
+            percentage: pendingPositions[stock.symbol].percentage
+          }
+        } else {
+          setNotification({msg: inspector.error().message, type: 'error'})
+        }
+      })
+
+      const newPositions = fn.getPositions(fulfilledPositions)
+      store.updateStore(newPositions)
+      setLoading(loading => ({...loading, chart: false}))
+      setPositions(newPositions)
+    })()
+  },[])
 
   const addStock = async e => {
     e.preventDefault()
     e.persist()
     const symbol = e.target.stock.value.toUpperCase()
     if (symbol === '' || positions[symbol]) return
+
     try {
-      setLoading(true)
-      await fn.getStock(symbol)
-      const position = fn.updatePosition({symbol, length: Object.keys(positions).length + 1})
-      setPositions(positions => ({...positions, [symbol]: position}))
+      setLoading({...loading, addStock: true})
+      const stock = await fn.getStock({symbol, positions})
+      const newPosition = {stock}
+      const newPositions = fn.getPositions({...positions, [symbol]: newPosition})
+      store.updateStore(newPositions)
+      setPositions({...newPositions})
+
     } catch (err) {
-      setNotification({msg: 'Stock not found', type: 'error'})
+      console.log(err)
+      setNotification({msg: err.message, type: 'error'})
+
     } finally {
       e.target.stock.value = ''
-      setLoading(false)
+      setLoading({...loading, addStock: false})
+
     }
   }
 
   const changeOption = e => {
     e.persist()
-
     if (e.target.name === 'capital') {
       e.target.value = numeral(e.target.value).format('$0,0')
     }
 
     fn.defer(() => {
       const key = e.target.name
-      const value = +(e.target.value.replace( /\D+/g,''))
-      store.set(key, value)
-      const newPositions = {}
-      Object.keys(positions).forEach((symbol, index) => {
-        newPositions[symbol] = fn.updatePosition({symbol})
-      })
-      setPositions(newPositions)
+      const item = +(e.target.value.replace( /\D+/g,''))
+      store.setItem({key, item})
+      const newPositions = fn.getPositions(positions)
+      setPositions({...newPositions})
     }, 1000)
   }
 
@@ -63,7 +113,7 @@ const App = React.memo(() => {
 
       <main>
         <div className="info-panel">
-          <Chart positions={positions}/>
+          <Chart loading={loading} positions={positions}/>
           <div className="stats-container">
             <div className="stats">
                 <div className="stat-item stat-titles">
@@ -105,17 +155,17 @@ const App = React.memo(() => {
 
             <div className="input-group">
               <label htmlFor="time" className="input-title">Years</label>
-              <input onChange={changeOption} name="time" id="time" defaultValue={store.get('time')} type="number" placeholder="15" title="The number of years of data."/>
+              <input onChange={changeOption} name="time" id="time" defaultValue={store.getItem({key: 'time'})} type="number" placeholder="15" title="The number of years of data."/>
               <span className="input-tip">The number of years of data.</span>
             </div>
 
             <div className="input-group">
               <label htmlFor="capital" className="input-title">Capital</label>
-              <input onChange={changeOption} name="capital" id="capital" defaultValue={numeral(store.get('capital')).format('$0,0')} type="text" placeholder="$10,000" title="The amount of starting capital to be invested."/>
+              <input onChange={changeOption} name="capital" id="capital" defaultValue={numeral(store.getItem({key: 'capital'})).format('$0,0')} type="text" placeholder="$10,000" title="The amount of starting capital to be invested."/>
               <span className="input-tip">The amount of starting capital to be invested.</span>
             </div>
 
-            <button className={`btn add-stock-btn ${loading ? 'loading-light' : ''}`} type="submit">Add Stock</button>
+            <button className={`btn add-stock-btn ${loading.addStock ? 'loading-light' : ''}`} type="submit">Add Stock</button>
           </form>
         </div>
       </main>

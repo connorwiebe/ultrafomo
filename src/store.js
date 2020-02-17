@@ -1,13 +1,36 @@
+const defaults = {time: '', capital: '', positions: '{}'}
+
+const getItem = ({key}) => {
+  let value = localStorage.getItem(key)
+  if (!value) {
+    localStorage.setItem(key, defaults[key])
+    value = defaults[key]
+  }
+
+  try {
+    value = JSON.parse(value)
+  } catch (err) {}
+
+  return value
+}
+
+const setItem = ({key, item}) => {
+  if (typeof item === 'object') {
+    item = JSON.stringify(item)
+  }
+  localStorage.setItem(key, item)
+}
+
 export default {
-  set: (key, value) => {
-    let store = JSON.parse(localStorage.getItem('ultrafomo'))
-    store[key] = typeof value === 'object' ? JSON.stringify(value) : value
-    localStorage.setItem('ultrafomo', JSON.stringify(store))
-  },
-  get: key => {
-    let store = localStorage.getItem('ultrafomo') || JSON.stringify({time: '', capital: '', positions: '{}'})
-    localStorage.setItem('ultrafomo', store)
-    store = JSON.parse(store)
-    return store[key]
+  getItem,
+  setItem,
+  updateStore: newPositions => {
+    const formattedPositions = Object.keys(newPositions).reduce((sum, symbol) => {
+      sum[symbol] = {
+        percentage: newPositions[symbol].percentage
+      }
+      return sum
+    },{})
+    setItem({key: 'positions', item: formattedPositions})
   }
 }

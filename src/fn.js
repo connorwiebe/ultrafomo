@@ -5,29 +5,39 @@ import numeral from 'numeral'
 import palettes from 'nice-color-palettes'
 import interpolate from 'color-interpolate'
 
-const getStock = async symbol => {
+const getPositions = positions => {
 
-  // check if store has stock first
-  const positions = JSON.parse(store.get('positions'))
-  let stock = positions[symbol] && positions[symbol].stock
-  if (stock && !moment(stock.lastUpdated).diff(Date.now(), 'days')) return stock
+  Object.keys(positions).forEach(symbol => {
+    const stats = getStats({symbol, positions})
+    const coords = getCoords({stats})
+    const dataset = getDataset({symbol, stats, coords})
+    positions[symbol] = {
+      ...stats,
+      coords,
+      dataset
+    }
+  })
 
-  // otherwise make network request for stock
+  return positions
+}
+const getStock = async ({symbol, positions}) => {
+
+  // return existing stock
+  const {stock} = positions[symbol] || {}
+  if (stock) return stock
+
+  // make network request for stock
   let response = await fetch(`https://0zqs2xabdg.execute-api.ca-central-1.amazonaws.com/fuck?symbol=${symbol}`)
   if (!response.ok) throw Error(`Couldn't find stock ${symbol}.`)
   response = await response.json()
-  stock = {
-    data: response.data,
-    lastUpdated: response.lastUpdated
-  }
-  store.set('positions', {...positions, [symbol]: {stock, stats:{}}})
-  return stock
+
+  return response
 }
-const getStats = ({symbol, percentage, length}) => {
-  const timeOption = store.get('time')
-  const capitalOption = store.get('capital')
-  const storePositions = JSON.parse(store.get('positions'))
-  const stock = storePositions[symbol].stock
+const getStats = ({symbol, positions}) => {
+  const position = positions[symbol]
+  const {stock} = position
+  const timeOption = store.getItem({key: 'time'})
+  const capitalOption = store.getItem({key: 'capital'})
 
   let time = moment().subtract(timeOption, 'years').format('YYYY-MM-DD')
   let startIndex = 0
@@ -63,10 +73,7 @@ const getStats = ({symbol, percentage, length}) => {
   let timespan = `${Math.floor(years)} Year${Math.floor(years) === 1 ? '' : 's'}`
   if (remainingDays) timespan += `, ${remainingDays} Day${remainingDays === 1 ? '' : 's'}`
 
-  const sum = Object.keys(storePositions).reduce((sum, key) => sum += storePositions[key].stats.percentage || 0, 0)
-  const remainder = Math.round(((1-sum) < 0 ? 0 : (1-sum)) * 100) / 100
-  percentage = percentage !== undefined ? percentage : storePositions[symbol].stats.percentage || remainder
-
+  const percentage = positions[symbol].percentage || 0
   const alloc = capitalOption * percentage
   const shares = Math.floor(alloc / startPrice)
   const startMktValue = shares * startPrice
@@ -76,14 +83,15 @@ const getStats = ({symbol, percentage, length}) => {
   const roi = (profit / alloc) || 0
   const annualized = (((1 + (roi / 100)) ** (365 / days)) - 1) * 100
 
-  const getGradient = interpolate(palettes[32])
-  length = length !== undefined ? length : Object.keys(storePositions).length
-  const gradient = Array.from({ length }, (v, i) => getGradient(i / length))
-  const usedColors = Object.keys(storePositions).map(symbol => storePositions[symbol].stats.color)
+  const getColor = interpolate(palettes[32])
+  const length = Object.keys(positions).length
+  const gradient = Array.from({ length }, (v, i) => getColor(i / length))
+  const usedColors = Object.keys(positions).map(symbol => positions[symbol].color)
   const availableColors = gradient.filter(color => !usedColors.includes(color))
-  const color = storePositions[symbol].stats.color || availableColors.shift()
+  const color = positions[symbol].color || availableColors.shift()
 
   return {
+    stock,
     symbol,
     shares,
     dividends,
@@ -105,8 +113,8 @@ const getStats = ({symbol, percentage, length}) => {
     }
   }
 }
-const getCoords = data => {
-  const coords = data.map(item => {
+const getCoords = ({stats}) => {
+  const coords = stats.range.map(item => {
     return {
       y: item.roi * 100,
       x: moment(item.date).valueOf()
@@ -114,7 +122,7 @@ const getCoords = data => {
   })
   return coords
 }
-const getDataset = ({symbol, coords, stats}) => {
+const getDataset = ({symbol, stats, coords}) => {
   return {
     borderColor: stats.color,
     pointBackgroundColor: stats.color,
@@ -130,62 +138,33 @@ const getDataset = ({symbol, coords, stats}) => {
     data: coords
   }
 }
-const updatePosition = ({symbol, percentage, length}) => {
-  const stats = getStats({symbol, percentage, length})
-  const coords = getCoords(stats.range)
-  const dataset = getDataset({symbol, coords, stats})
-  const storePositions = JSON.parse(store.get('positions'))
-  const {stock} = storePositions[symbol]
-  const position = {stock, stats, coords, dataset}
-  store.set('positions', {...storePositions, [symbol]: position})
-  return position
-}
 const defer = (timer => {
   return (callback, ms) => {
     clearTimeout(timer)
     timer = setTimeout(callback, ms)
   }
 })()
-const minmax = positions => {
-  const sorted = Object.keys(positions).reduce((sum, cur) => {
-    const position = positions[cur]
-    const range = position.coords.map(item => item.y)
-    sum = [...sum, ...range]
-    return sum
-  },[]).sort((a,b) => a-b)
-  return {
-    min: Math.floor(sorted.shift()),
-  	max: Math.floor(sorted.pop())
-  }
-
-  // ticks: {
-  //   min: min - 10,
-  //   max: max + 10,
-  //   callback: (value, index, values) => `${value}%`
-  // },
-
-}
 const getTotals = positions => {
   const totalProfit = () => {
-    const totalProfit = Object.keys(positions).reduce((sum,cur) => sum += positions[cur].stats.profit,0)
+    const totalProfit = Object.keys(positions).reduce((sum,cur) => sum += positions[cur].profit,0)
     return numeral(totalProfit).format('$0,0.00')
   }
   const totalRoi = () => {
-    const formattedPositions = Object.keys(positions).map(key => ({val: positions[key].stats.roi, weight: positions[key].stats.percentage}))
+    const formattedPositions = Object.keys(positions).map(key => ({val: positions[key].roi, weight: positions[key].percentage}))
     const weightedAverage = wA(formattedPositions)
     return numeral(weightedAverage).format('0,.00%')
   }
   const totalAnnualizedRoi = () => {
-    const formattedPositions = Object.keys(positions).map(key => ({val: positions[key].stats.annualized, weight: positions[key].stats.percentage}))
+    const formattedPositions = Object.keys(positions).map(key => ({val: positions[key].annualized, weight: positions[key].percentage}))
     const weightedAverage = wA(formattedPositions)
     return numeral(weightedAverage).format('0,.00%')
   }
   const totalPercentage = () => {
-    const totalPercentage = Object.keys(positions).reduce((sum,cur) => sum += positions[cur].stats.percentage,0)
+    const totalPercentage = Object.keys(positions).reduce((sum,cur) => sum += positions[cur].percentage,0)
     return numeral(totalPercentage).format('0.00%')
   }
   const totalDividends = () => {
-    const totalDividends = Object.keys(positions).reduce((sum,cur) => sum += positions[cur].stats.dividends, 0)
+    const totalDividends = Object.keys(positions).reduce((sum,cur) => sum += positions[cur].dividends, 0)
     return numeral(totalDividends).format('$0,0.00')
   }
   return {
@@ -198,9 +177,8 @@ const getTotals = positions => {
 }
 
 export default {
-  updatePosition,
+  getPositions,
   getStock,
   defer,
-  minmax,
   getTotals
 }

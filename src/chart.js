@@ -2,9 +2,8 @@ import React from 'react'
 import {Chart, Line} from 'react-chartjs-2'
 import numeral from 'numeral'
 
-export default React.memo(({positions}) => {
+export default React.memo(({loading, positions}) => {
 
-  // const { min, max } = fn.minmax(positions)
   Chart.Tooltip.positioners.custom = (els, pos) => {
     const y = els[0]._model.y
     const x = els[0]._model.x
@@ -13,11 +12,24 @@ export default React.memo(({positions}) => {
   }
   const datasets = Object.keys(positions).map(item => positions[item].dataset)
 
+  const empty = loading => {
+    if (loading.chart) {
+      return <div className="loading-large"></div>
+    } else {
+      // if (loading.chart === null) return null flash is still happening
+      return (
+        <React.Fragment>
+          <h2 className="empty-title">Search</h2>
+          <span className="empty-subtitle">Type a symbol in the search input to get started.</span>
+        </React.Fragment>
+      )
+    }
+  }
+
   return (
     <div className="chart-container">
       <div className={`empty-container ${!Object.keys(positions).length ? 'display' : ''}`}>
-        <h2 className="empty-title">Search</h2>
-        <span className="empty-subtitle">Type a symbol in the search input to get started.</span>
+        {empty(loading)}
       </div>
       <div className="chart">
         <Line
@@ -83,7 +95,7 @@ export default React.memo(({positions}) => {
               callbacks: {
                 label: (item, data) => {
                   const symbol = data.datasets[item.datasetIndex].label
-                  const price = positions[symbol].stats.range[item.index].price
+                  const price = positions[symbol].range[item.index].price
                   const formattedPrice = numeral(price).format('$0,0.00')
                   const formattedRoi = numeral(item.yLabel / 100).format('0.00%')
                   return `${symbol}: ${formattedPrice} (${formattedRoi})`
