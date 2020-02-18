@@ -347,11 +347,11 @@ button:hover {
   border-bottom: 1px dotted var(--primary);
 }
 
-.stat-titles {
+.stats-titles {
   font-weight: 500;
 }
 
-.stat-totals {
+.stats-totals {
   font-weight: 500;
   border-bottom: 0;
 }
@@ -376,12 +376,12 @@ button:hover {
 }
 
 
-.stat-item-color {
+.stat-data-color {
   width: 11px;
   height: 11px;
 }
 
-.stat-item-symbol {
+.stat-data-symbol {
   padding: 0 5px;
   line-height: .9;
 }
@@ -410,6 +410,10 @@ button:hover {
 
 .add-stock-btn {
   margin-top: 10px;
+}
+
+.share {
+  margin-top: 4px;
 }
 
 .notifications {
@@ -455,9 +459,20 @@ button:hover {
   }
 }
 
-@media screen and (max-width: 600px) {
-  .stats, select, option {
-    font-size: 2.2vw;
+@media screen and (max-width: 500px) {
+  .stats-titles {
+    display: none;
+  }
+  .stats-totals {
+    font-weight: inherit;
+  }
+  .stat-item {
+    grid-template-columns: 1fr;
+  }
+  .stat-data::before {
+    content: attr(data-name);
+    font-weight: 500;
+    padding-right: 8px;
   }
   .notifications {
     right: auto;

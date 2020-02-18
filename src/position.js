@@ -38,14 +38,14 @@ export default React.memo(({symbol, position, setPositions, setNotification}) =>
 
   return (
     <div className="stat-item">
-      <div className="symbol">
-        <div className="stat-item-color" style={{background: position.color}}></div>
-        <span className="stat-item-symbol">{symbol}</span>
+      <div data-name="Symbol" className="stat-data symbol">
+        <div className="stat-data-color" style={{background: position.color}}></div>
+        <span className="stat-data-symbol">{symbol}</span>
       </div>
-      <span>{position.formatted.profit}</span>
-      <span>{position.formatted.dividends}</span>
-      <span>{position.formatted.roi}</span>
-      <div className="percentage">
+      <span data-name="Profit" className="stat-data">{position.formatted.profit}</span>
+      <span data-name="Dividends" className="stat-data">{position.formatted.dividends}</span>
+      <span data-name="Return" className="stat-data">{position.formatted.roi}</span>
+      <div data-name="Allocation" className="stat-data percentage">
         <select onChange={changePercentage} defaultValue={position.percentage} name="percentage" id={symbol}>
           <option value="0">0%</option>
           <option value="0.1">10%</option>
@@ -60,7 +60,7 @@ export default React.memo(({symbol, position, setPositions, setNotification}) =>
           <option value="1">100%</option>
         </select>
       </div>
-      <span>{position.formatted.annualized}</span>
+      <span data-name="Annualized Return" className="stat-data">{position.formatted.annualized}</span>
       <button onClick={deletePosition} id={symbol} className={`delete ${loading ? 'loading-dark' : ''}`}>
         <svg style={{display: loading ? 'none' : 'inherit'}} height="8" width="8" viewBox="0 0 8 8"><path d="M8 .8L7.2 0 4 3.2.8 0 0 .8 3.2 4 0 7.2l.8.8L4 4.8 7.2 8l.8-.8L4.8 4 8 .8z"/></svg>
       </button>

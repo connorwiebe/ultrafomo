@@ -10,30 +10,32 @@ import Menu from './menu'
 import numeral from 'numeral'
 import Promise from 'bluebird'
 import qs from 'query-string'
+import {CopyToClipboard} from 'react-copy-to-clipboard';
 import './index.css'
 
 const App = React.memo(() => {
 
-  const [loading, setLoading] = React.useState({addStock: false, chart: false})
+  const [loading, setLoading] = React.useState({addStock: false, chart: null})
   const [notification, setNotification] = React.useState({msg: ''})
   const [positions, setPositions] = React.useState({})
 
   React.useEffect(() => {
     const storePositions = store.getItem({key: 'positions'})
-
     const qsParsed = qs.parse(window.location.search).s || ''
     const qsArray = qsParsed ? qsParsed.split(',') : []
 
-    const qsStocks = qsArray.filter(item => isNaN(item))
+    const qsSymbols = qsArray.filter(item => isNaN(item))
     const qsPercentages = qsArray.filter(item => !isNaN(item))
 
-    const qsSymbols = qsStocks.reduce((sum, cur, i) => {
+    const qsPositions = qsSymbols.reduce((sum, cur, i) => {
       sum[cur] = {percentage: +qsPercentages[i] / 100 || 0}
       return sum
     },{})
 
-    const pendingPositions = {...storePositions, ...qsSymbols}
-    if (!Object.keys(pendingPositions).length) return
+    const pendingPositions = {...storePositions, ...qsPositions}
+    if (Object.keys(pendingPositions).length) {
+      setLoading(loading => ({...loading, chart: true}))
+    }
 
     const requests = Object.keys(pendingPositions).reduce((sum, symbol) => {
       sum.push(Promise.resolve(fn.getStock({symbol, positions: pendingPositions})))
@@ -41,7 +43,6 @@ const App = React.memo(() => {
     },[])
 
     ;(async () => {
-      setLoading(loading => ({...loading, chart: true}))
 
       const fulfilledPositions = {}
       await Promise.all(requests.map(request => request.reflect())).each(inspector => {
@@ -72,8 +73,7 @@ const App = React.memo(() => {
     try {
       setLoading({...loading, addStock: true})
       const stock = await fn.getStock({symbol, positions})
-      const newPosition = {stock}
-      const newPositions = fn.getPositions({...positions, [symbol]: newPosition})
+      const newPositions = fn.getPositions({...positions, [symbol]: {stock}})
       store.updateStore(newPositions)
       setPositions({...newPositions})
 
@@ -103,6 +103,17 @@ const App = React.memo(() => {
     }, 1000)
   }
 
+
+  const generateLink = () => {
+    return Object.keys(positions).reduce((sum, symbol, i) => {
+      sum += `${i ? ',' : ''}${symbol},${positions[symbol].percentage * 100}`
+      return sum
+    },'')
+  }
+  const shareStocks = () => {
+    setNotification({msg: 'Link copied to clipboard'})
+  }
+
   return (
     <React.Fragment>
 
@@ -116,12 +127,12 @@ const App = React.memo(() => {
           <Chart loading={loading} positions={positions}/>
           <div className="stats-container">
             <div className="stats">
-                <div className="stat-item stat-titles">
+                <div className="stat-item stats-titles">
                   <span>Symbol</span>
                   <span>Profit</span>
                   <span>Dividends</span>
-                  <span>Total Return</span>
-                  <span>Portfolio %</span>
+                  <span>Return</span>
+                  <span>Allocation</span>
                   <span>Annualized Return</span>
                 </div>
                 {Object.keys(positions).map(symbol => {
@@ -130,13 +141,13 @@ const App = React.memo(() => {
                     <Position key={symbol} symbol={symbol} position={position} setPositions={setPositions} setNotification={setNotification}/>
                   )
                 })}
-                <div className="stat-item stat-totals">
+                <div className="stat-item stats-totals">
                   <span></span>
-                  <span>{fn.getTotals(positions).totalProfit}</span>
-                  <span>{fn.getTotals(positions).totalDividends}</span>
-                  <span>{fn.getTotals(positions).totalRoi}</span>
-                  <span>{fn.getTotals(positions).totalPercentage}</span>
-                  <span>{fn.getTotals(positions).totalAnnualizedRoi}</span>
+                  <span data-name="Total Profit" className="stat-data">{fn.getTotals(positions).totalProfit}</span>
+                  <span data-name="Total Dividends" className="stat-data">{fn.getTotals(positions).totalDividends}</span>
+                  <span data-name="Total Return" className="stat-data">{fn.getTotals(positions).totalRoi}</span>
+                  <span data-name="Total Allocation" className="stat-data">{fn.getTotals(positions).totalPercentage}</span>
+                  <span data-name="Total Annualized Return" className="stat-data">{fn.getTotals(positions).totalAnnualizedRoi}</span>
                 </div>
             </div>
           </div>
@@ -167,6 +178,9 @@ const App = React.memo(() => {
 
             <button className={`btn add-stock-btn ${loading.addStock ? 'loading-light' : ''}`} type="submit">Add Stock</button>
           </form>
+          <CopyToClipboard text={`https://ultrafomo.com/?s=${generateLink()}`}>
+            <button onClick={shareStocks} className="share">Share</button>
+          </CopyToClipboard>
         </div>
       </main>
 

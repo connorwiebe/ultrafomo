@@ -13,10 +13,10 @@ export default React.memo(({loading, positions}) => {
   const datasets = Object.keys(positions).map(item => positions[item].dataset)
 
   const empty = loading => {
+    if (loading.chart === null) return null
     if (loading.chart) {
       return <div className="loading-large"></div>
     } else {
-      // if (loading.chart === null) return null flash is still happening
       return (
         <React.Fragment>
           <h2 className="empty-title">Search</h2>
