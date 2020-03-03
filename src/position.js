@@ -1,9 +1,12 @@
 import React from 'react'
 import fn from './fn'
 import store from './store'
+import {NotificationContext} from './notification_provider'
 
-export default React.memo(({symbol, position, setPositions, setNotification}) => {
+
+export default ({symbol, position, setPositions}) => {
   const [loading, setLoading] = React.useState(false)
+  const {setNotification} = React.useContext(NotificationContext)
 
   const deletePosition = e => {
     setLoading(true)
@@ -66,4 +69,4 @@ export default React.memo(({symbol, position, setPositions, setNotification}) =>
       </button>
     </div>
   )
-})
+}

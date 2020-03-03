@@ -1,8 +1,63 @@
 import React from 'react'
 import {Chart, Line} from 'react-chartjs-2'
 import numeral from 'numeral'
+import store from './store'
+import qs from 'query-string'
+import fn from './fn'
+import Promise from 'bluebird'
+import {NotificationContext} from './notification_provider'
 
-export default React.memo(({loading, positions}) => {
+export default ({positions, setPositions}) => {
+  console.log('chart.js')
+
+  const {setNotification} = React.useContext(NotificationContext)
+  const [loading, setLoading] = React.useState(false)
+
+  React.useEffect(() => {
+    console.log('chart.js effect ran')
+    const storePositions = store.getItem({key: 'positions'})
+    const qsParsed = qs.parse(window.location.search).s || ''
+    const qsArray = qsParsed ? qsParsed.split(',') : []
+
+    const qsSymbols = qsArray.filter(item => isNaN(item))
+    const qsPercentages = qsArray.filter(item => !isNaN(item))
+
+    const qsPositions = qsSymbols.reduce((sum, cur, i) => {
+      sum[cur] = {percentage: +qsPercentages[i] / 100 || 0}
+      return sum
+    },{})
+
+    const pendingPositions = {...storePositions, ...qsPositions}
+    if (Object.keys(pendingPositions).length) {
+      setLoading(true)
+    }
+
+    const requests = Object.keys(pendingPositions).reduce((sum, symbol) => {
+      sum.push(Promise.resolve(fn.getStock({symbol, positions: pendingPositions})))
+      return sum
+    },[])
+
+    ;(async () => {
+
+      const fulfilledPositions = {}
+      await Promise.all(requests.map(request => request.reflect())).each(inspector => {
+        if (inspector.isFulfilled()) {
+          const stock = inspector.value()
+          fulfilledPositions[stock.symbol] = {
+            stock,
+            percentage: pendingPositions[stock.symbol].percentage
+          }
+        } else {
+          setNotification({msg: inspector.error().message, type: 'error'})
+        }
+      })
+
+      const newPositions = fn.getPositions(fulfilledPositions)
+      store.updateStore(newPositions)
+      setLoading(false)
+      setPositions(newPositions)
+    })()
+  }, [setNotification, setPositions])
 
   Chart.Tooltip.positioners.custom = (els, pos) => {
     const y = els[0]._model.y
@@ -13,8 +68,8 @@ export default React.memo(({loading, positions}) => {
   const datasets = Object.keys(positions).map(item => positions[item].dataset)
 
   const empty = loading => {
-    if (loading.chart === null) return null
-    if (loading.chart) {
+    if (loading === null) return null
+    if (loading) {
       return <div className="loading-large"></div>
     } else {
       return (
@@ -113,4 +168,4 @@ export default React.memo(({loading, positions}) => {
       </div>
     </div>
   )
-})
+}

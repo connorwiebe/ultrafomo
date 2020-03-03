@@ -1,7 +1,9 @@
 import React from 'react'
-import { CSSTransition } from 'react-transition-group'
+import {CSSTransition} from 'react-transition-group'
+import {NotificationContext} from './notification_provider'
 
-const Notification = React.memo(({notification, setNotifications}) => {
+const Notification = ({notification, setNotifications}) => {
+  console.log('notification.js')
   const [active, setActive] = React.useState(false)
 
   React.useEffect(() => {
@@ -9,7 +11,7 @@ const Notification = React.memo(({notification, setNotifications}) => {
   }, [notification])
 
   const color = notification.type === 'error' ? '#cd2137' : '#007eff'
-  const typeStyle = { borderLeft: `1px solid ${color}` }
+  const typeStyle = {borderLeft: `1px solid ${color}`}
 
   return (
     <CSSTransition
@@ -37,9 +39,11 @@ const Notification = React.memo(({notification, setNotifications}) => {
       </div>
     </CSSTransition>
   )
-})
+}
 
-export default React.memo(({notification}) => {
+export default () => {
+  console.log('notifications.js')
+  const {notification} = React.useContext(NotificationContext)
   const [notifications, setNotifications] = React.useState([])
 
   React.useEffect(() => {
@@ -57,4 +61,4 @@ export default React.memo(({notification}) => {
       {notifications}
     </div>
   )
-})
+}

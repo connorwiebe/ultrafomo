@@ -194,14 +194,14 @@ header {
 }
 
 
-main {
+.main-container {
   display: grid;
   grid-template-columns: 75% 1fr;
   height: 100%;
   width: 100%;
 }
 
-.info-panel {
+.main {
   padding: 3vw;
   background: #FCFEFF;
 }
@@ -454,7 +454,7 @@ button:hover {
 }
 
 @media screen and (max-width: 1000px) {
-  main {
+  .main-container {
     grid-template-columns: 100%;
   }
 }
