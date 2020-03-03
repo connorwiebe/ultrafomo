@@ -8,13 +8,11 @@ import Promise from 'bluebird'
 import {NotificationContext} from './notification_provider'
 
 export default ({positions, setPositions}) => {
-  console.log('chart.js')
 
   const {setNotification} = React.useContext(NotificationContext)
   const [loading, setLoading] = React.useState(false)
 
   React.useEffect(() => {
-    console.log('chart.js effect ran')
     const storePositions = store.getItem({key: 'positions'})
     const qsParsed = qs.parse(window.location.search).s || ''
     const qsArray = qsParsed ? qsParsed.split(',') : []

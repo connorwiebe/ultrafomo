@@ -4,7 +4,6 @@ import Stats from './stats'
 import Chart from './chart'
 
 export default () => {
-  console.log('main.js')
   const [positions, setPositions] = React.useState({})
 
   return (

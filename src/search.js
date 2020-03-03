@@ -4,10 +4,8 @@ import fn from './fn'
 import store from './store'
 import {CopyToClipboard} from 'react-copy-to-clipboard'
 import {NotificationContext} from './notification_provider'
-// import api from './api'
 
 export default ({positions, setPositions}) => {
-  console.log('search.js')
   const {setNotification} = React.useContext(NotificationContext)
   const [loading, setLoading] = React.useState(false)
 
@@ -25,7 +23,7 @@ export default ({positions, setPositions}) => {
       setPositions({ ...newPositions })
 
     } catch (err) {
-      console.log(err)
+      if (process.env.NODE_ENV === 'development') console.log(err)
       setNotification({ msg: err.message, type: 'error' })
 
     } finally {

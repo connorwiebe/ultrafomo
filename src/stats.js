@@ -3,7 +3,6 @@ import Position from './position'
 import fn from './fn'
 
 export default ({positions, setPositions}) => {
-  console.log('stats.js')
   return (
     <div className="stats-container">
       <div className="stats">

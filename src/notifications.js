@@ -3,7 +3,6 @@ import {CSSTransition} from 'react-transition-group'
 import {NotificationContext} from './notification_provider'
 
 const Notification = ({notification, setNotifications}) => {
-  console.log('notification.js')
   const [active, setActive] = React.useState(false)
 
   React.useEffect(() => {
@@ -42,7 +41,6 @@ const Notification = ({notification, setNotifications}) => {
 }
 
 export default () => {
-  console.log('notifications.js')
   const {notification} = React.useContext(NotificationContext)
   const [notifications, setNotifications] = React.useState([])
 
