@@ -1,19 +1,19 @@
 import React from 'react'
-import {Chart, Line} from 'react-chartjs-2'
+import { Chart, Line } from 'react-chartjs-2'
 import numeral from 'numeral'
 import store from './store'
 import qs from 'query-string'
 import fn from './fn'
 import Promise from 'bluebird'
-import {NotificationContext} from './notification_provider'
+import { NotificationContext } from './notification_provider'
 
-export default ({positions, setPositions}) => {
+export default ({ positions, setPositions }) => {
 
-  const {setNotification} = React.useContext(NotificationContext)
-  const [loading, setLoading] = React.useState(false)
+  const { setNotification } = React.useContext(NotificationContext)
+  const [loading, setLoading] = React.useState(null)
 
   React.useEffect(() => {
-    const storePositions = store.getItem({key: 'positions'})
+    const storePositions = store.getItem({ key: 'positions' })
     const qsParsed = qs.parse(window.location.search).s || ''
     const qsArray = qsParsed ? qsParsed.split(',') : []
 
@@ -21,53 +21,53 @@ export default ({positions, setPositions}) => {
     const qsPercentages = qsArray.filter(item => !isNaN(item))
 
     const qsPositions = qsSymbols.reduce((sum, cur, i) => {
-      sum[cur] = {percentage: +qsPercentages[i] / 100 || 0}
+      sum[cur] = { percentage: +qsPercentages[i] / 100 || 0 }
       return sum
-    },{})
+    }, {})
 
-    const pendingPositions = {...storePositions, ...qsPositions}
+    const pendingPositions = { ...storePositions, ...qsPositions }
     if (Object.keys(pendingPositions).length) {
       setLoading(true)
     }
 
     const requests = Object.keys(pendingPositions).reduce((sum, symbol) => {
-      sum.push(Promise.resolve(fn.getStock({symbol, positions: pendingPositions})))
+      sum.push(Promise.resolve(fn.getStock({ symbol, positions: pendingPositions })))
       return sum
-    },[])
+    }, [])
 
-    ;(async () => {
+      ; (async () => {
 
-      const fulfilledPositions = {}
-      await Promise.all(requests.map(request => request.reflect())).each(inspector => {
-        if (inspector.isFulfilled()) {
-          const stock = inspector.value()
-          fulfilledPositions[stock.symbol] = {
-            stock,
-            percentage: pendingPositions[stock.symbol].percentage
+        const fulfilledPositions = {}
+        await Promise.all(requests.map(request => request.reflect())).each(inspector => {
+          if (inspector.isFulfilled()) {
+            const stock = inspector.value()
+            fulfilledPositions[stock.symbol] = {
+              stock,
+              percentage: pendingPositions[stock.symbol].percentage
+            }
+          } else {
+            setNotification({ msg: inspector.error().message, type: 'error' })
           }
-        } else {
-          setNotification({msg: inspector.error().message, type: 'error'})
-        }
-      })
+        })
 
-      const newPositions = fn.getPositions(fulfilledPositions)
-      store.updateStore(newPositions)
-      setLoading(false)
-      setPositions(newPositions)
-    })()
+        const newPositions = fn.getPositions(fulfilledPositions)
+        store.updateStore(newPositions)
+        setLoading(false)
+        setPositions(newPositions)
+      })()
   }, [setNotification, setPositions])
 
   Chart.Tooltip.positioners.custom = (els, pos) => {
     const y = els[0]._model.y
     const x = els[0]._model.x
-    if (y < 100) return {x: x - 50, y: y + 100}
-    return {x: x - 50, y: y - 100}
+    if (y < 100) return { x: x - 50, y: y + 100 }
+    return { x: x - 50, y: y - 100 }
   }
   const datasets = Object.keys(positions).map(item => positions[item].dataset)
 
   const empty = loading => {
     if (loading === null) return null
-    if (loading) {
+    if (loading === true) {
       return <div className="loading-large"></div>
     } else {
       return (
@@ -161,7 +161,7 @@ export default ({positions, setPositions}) => {
               animationDuration: 0
             }
           }}
-          data={{datasets: [{data: [0, 100]}, ...datasets]}}
+          data={{ datasets: [{ data: [0, 100] }, ...datasets] }}
         />
       </div>
     </div>
