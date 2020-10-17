@@ -1,5 +1,5 @@
 :root {
-  --font: -apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;
+  --font: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
   --primary: #020202;
   --secondary: #94989d;
   --border: #f0f0f0;
@@ -32,7 +32,12 @@ body {
   height: 100vh;
 }
 
-h1,h2,h3,h4,h5,h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   margin: 0;
 }
 
@@ -42,18 +47,19 @@ a {
   outline: 0;
 }
 
-[name="percentage"] {
+[name='percentage'] {
   background: none;
   border: none;
 }
 
-select, option {
+select,
+option {
   font-family: var(--font);
   font-size: 13px;
   outline: 0;
 }
 
-[name="percentage"] option {
+[name='percentage'] option {
   font-family: var(--font);
 }
 
@@ -72,21 +78,21 @@ select, option {
 }
 .loading-light:after {
   position: absolute;
-  animation: loading-light .4s infinite linear;
+  animation: loading-light 0.4s infinite linear;
   border: 2px solid #fff;
   border-radius: 50%;
   border-right-color: transparent;
   border-top-color: transparent;
-  border-bottom-color: rgba(255,255,255,1);
-  border-left-color: rgba(255,255,255,1);
+  border-bottom-color: rgba(255, 255, 255, 1);
+  border-left-color: rgba(255, 255, 255, 1);
   content: '';
   display: block;
-  height: .6rem;
+  height: 0.6rem;
   left: 50%;
-  margin-left: -.4rem;
-  margin-top: -.4rem;
+  margin-left: -0.4rem;
+  margin-top: -0.4rem;
   top: 50%;
-  width: .6rem;
+  width: 0.6rem;
   z-index: 1;
 }
 .loading-light:hover {
@@ -108,19 +114,19 @@ select, option {
 }
 .loading-dark:after {
   position: absolute;
-  animation: loading-dark .4s infinite linear;
+  animation: loading-dark 0.4s infinite linear;
   border: 1px solid var(--secondary);
   border-radius: 50%;
   border-right-color: transparent;
   border-top-color: transparent;
-  border-bottom-color: rgba(148,152,157,1);
-  border-left-color: rgba(148,152,157,1);
+  border-bottom-color: rgba(148, 152, 157, 1);
+  border-left-color: rgba(148, 152, 157, 1);
   content: '';
   display: block;
-  height: .5rem;
-  width: .5rem;
-  margin-left: -.3rem;
-  margin-top: -.3rem;
+  height: 0.5rem;
+  width: 0.5rem;
+  margin-left: -0.3rem;
+  margin-top: -0.3rem;
   left: 50%;
   top: 50%;
   z-index: 1;
@@ -144,19 +150,19 @@ select, option {
 }
 .loading-large:after {
   position: absolute;
-  animation: loading-large .4s infinite linear;
+  animation: loading-large 0.4s infinite linear;
   border: 2px solid var(--primary);
   border-radius: 50%;
   border-right-color: transparent;
   border-top-color: transparent;
-  border-bottom-color: rgba(2,2,2,1);
-  border-left-color: rgba(2,2,2,1);
+  border-bottom-color: rgba(2, 2, 2, 1);
+  border-left-color: rgba(2, 2, 2, 1);
   content: '';
   display: block;
-  height: .8rem;
-  width: .8rem;
-  margin-left: -.4rem;
-  margin-top: -.4rem;
+  height: 0.8rem;
+  width: 0.8rem;
+  margin-left: -0.4rem;
+  margin-top: -0.4rem;
   left: 50%;
   top: 50%;
   z-index: 1;
@@ -173,12 +179,13 @@ header {
   width: 100%;
   border-bottom: 2px solid var(--border);
   padding: 25px;
-  box-shadow: 0px 1px 5px 0px rgba(240,240,240,.3);
+  box-shadow: 0px 1px 5px 0px rgba(240, 240, 240, 0.3);
 }
 
 .menu {
   display: flex;
   justify-content: center;
+  align-items: center;
   width: 30px;
   height: 30px;
 }
@@ -193,7 +200,6 @@ header {
   right: 20px;
 }
 
-
 .main-container {
   display: grid;
   grid-template-columns: 75% 1fr;
@@ -203,7 +209,7 @@ header {
 
 .main {
   padding: 3vw;
-  background: #FCFEFF;
+  background: #fcfeff;
 }
 
 .chart-container {
@@ -215,7 +221,7 @@ header {
 
 .chart {
   width: 100%;
-  transition: opacity .2s linear;
+  transition: opacity 0.2s linear;
 }
 
 .empty-container {
@@ -243,9 +249,9 @@ header {
 }
 
 ::-webkit-input-placeholder {
-  opacity: .8;
+  opacity: 0.8;
   font-weight: 400;
-  font-size: .8rem;
+  font-size: 0.8rem;
   color: #acaeb0;
 }
 
@@ -277,14 +283,14 @@ input {
   border-radius: 2px;
   border: 1px solid #ececec;
   height: 34px;
-  font-size: .85rem;
-  transition: all .2s;
+  font-size: 0.85rem;
+  transition: all 0.2s;
   font-family: var(--font);
 }
 
 input:focus {
   border-color: var(--accent);
-  box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 0 3px rgba(0,126,255,.1);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 0 3px rgba(0, 126, 255, 0.1);
 }
 
 button {
@@ -302,7 +308,7 @@ button:hover {
 .btn {
   outline: 0;
   font-weight: 600;
-  font-size: .75rem;
+  font-size: 0.75rem;
   min-width: 100px;
   padding: 0 20px;
   height: 34px;
@@ -327,10 +333,6 @@ button:hover {
 
 .stats-container {
   padding-top: 20px;
-}
-
-.stats {
-
 }
 
 .symbol {
@@ -360,6 +362,7 @@ button:hover {
   position: absolute;
   display: flex;
   justify-content: center;
+  align-items: center;
   padding: 0;
   right: 0;
   width: 24px;
@@ -375,7 +378,6 @@ button:hover {
   background: #f1f3f5;
 }
 
-
 .stat-data-color {
   width: 11px;
   height: 11px;
@@ -383,7 +385,7 @@ button:hover {
 
 .stat-data-symbol {
   padding: 0 5px;
-  line-height: .9;
+  line-height: 0.9;
 }
 
 .stat-border {
@@ -395,7 +397,7 @@ button:hover {
   border-top: 2px solid var(--border);
   border-left: 2px solid var(--border);
   margin-top: -2px;
-  box-shadow: -1px 0px 5px 0px rgba(240,240,240,.3);
+  box-shadow: -1px 0px 5px 0px rgba(240, 240, 240, 0.3);
   padding: 3vw;
 }
 
@@ -435,7 +437,7 @@ button:hover {
   background: #fff;
   margin-bottom: 5px;
   font-weight: 500;
-  box-shadow: 0px 8px 15px -6px rgba(0,0,0,0.15);
+  box-shadow: 0px 8px 15px -6px rgba(0, 0, 0, 0.15);
 }
 
 .notification-enter {
