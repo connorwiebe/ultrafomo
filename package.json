@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "bluebird": "^3.7.2",
-    "chart.js": "^2.9.3",
+    "chart.js": "^2.9.4",
     "color-interpolate": "^1.0.5",
     "moment": "^2.24.0",
     "nice-color-palettes": "^3.0.0",
