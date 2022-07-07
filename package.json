@@ -6,7 +6,7 @@
     "bluebird": "^3.7.2",
     "chart.js": "^2.9.3",
     "color-interpolate": "^1.0.5",
-    "moment": "^2.24.0",
+    "moment": "^2.29.4",
     "nice-color-palettes": "^3.0.0",
     "numeral": "^2.0.6",
     "query-string": "^6.11.0",
